@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.example.demo.model.Cita;
 import com.example.demo.repository.CitaRepository;
 
@@ -12,32 +11,26 @@ import java.util.Optional;
 @Service
 public class CitaServiceImplement implements CitaService {
 
-    @Autowired
-    private CitaRepository repo;
+	@Autowired
+	private CitaRepository repo;
 
 	@Override
 	public List<Cita> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		return repo.findAll();
 	}
 
 	@Override
 	public Optional<Cita> findById(Integer id) {
-		// TODO Auto-generated method stub
-		return Optional.empty();
+		return repo.findById(id);
 	}
 
 	@Override
 	public Cita save(Cita cita) {
-		// TODO Auto-generated method stub
-		return null;
+		return repo.save(cita);
 	}
 
 	@Override
 	public void delete(Integer id) {
-		// TODO Auto-generated method stub
-		
+		repo.deleteById(id);
 	}
-
-
 }

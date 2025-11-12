@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Agendify - Usuario</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="stylesheet" th:href="@{/css/stylesUsua.css}">
+</head>
+
+<body data-theme="light">
+	<!-- Custom Alert -->
+	<div id="customAlert" class="custom-alert">
+		<i class="fas fa-check-circle alert-icon"></i>
+		<p id="alertMessage"></p>
+	</div>
+
+	<!-- Navigation -->
+	<nav>
+		<div class="nav-container">
+			<div class="logo" onclick="showSection('home')">
+				<i class="fas fa-scissors"></i> Agendify Beauty
+			</div>
+			<ul class="nav-links">
+				<li><a onclick="showSection('home')">Inicio</a></li>
+				<li><a onclick="showSection('services')">Servicios</a></li>
+				<li><a onclick="showSection('booking')">Reservar</a></li>
+				<li><a onclick="showSection('profile')">Mi Perfil</a></li>
+				<li>
+					<button class="theme-toggle" onclick="toggleTheme()">
+						<i class="fas fa-moon" id="themeIcon"></i>
+					</button>
+				</li>
+				<li class="user-menu">
+					<div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()">
+						<span
+							th:text="${nombreUsuario != null ? nombreUsuario.substring(0,1).toUpperCase() : 'U'}">U</span>
+					</div>
+					<div class="user-dropdown" id="userDropdown">
+						<a th:href="@{/logout}">Cerrar Sesión</a>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</nav>
+
+	<!-- Hidden data for JavaScript -->
+	<input type="hidden" id="usuarioId" th:value="${usuarioId}">
+	<input type="hidden" id="nombreUsuario" th:value="${nombreUsuario}">
+
+	<!-- Main Content -->
+	<main>
+		<!-- Home Section -->
+		<section id="home" class="section active">
+			<div class="hero">
+				<div class="hero-content">
+					<h1>Bienvenido, <span th:text="${nombreUsuario}">Usuario</span></h1>
+					<p>Tu belleza es nuestra prioridad. Agenda tus servicios favoritos con los mejores profesionales</p>
+					<div class="hero-buttons">
+						<button class="btn btn-primary" onclick="showSection('services')">Explorar Servicios</button>
+						<button class="btn btn-secondary" onclick="showSection('booking')">Reservar Ahora</button>
+					</div>
+				</div>
+			</div>
+			<!-- Carousel -->
+			<div class="carousel">
+				<div class="carousel-inner">
+					<div class="carousel-item active">
+						<div class="carousel-content">
+							<h2><i class="fas fa-bolt"></i> Agenda en segundos</h2>
+							<p>Encuentra y reserva servicios de belleza con profesionales calificados de manera rápida y
+								sencilla</p>
+						</div>
+					</div>
+					<div class="carousel-item">
+						<div class="carousel-content">
+							<h2><i class="fas fa-user-check"></i> Profesionales verificados</h2>
+							<p>Todos nuestros estilistas están verificados y cuentan con excelentes calificaciones</p>
+						</div>
+					</div>
+					<div class="carousel-item">
+						<div class="carousel-content">
+							<h2><i class="fas fa-clock"></i> Disponibilidad 24/7</h2>
+							<p>Reserva en cualquier momento y recibe confirmación instantánea de tu cita</p>
+						</div>
+					</div>
+				</div>
+				<button class="carousel-nav carousel-prev" onclick="prevSlide()"><i
+						class="fas fa-chevron-left"></i></button>
+				<button class="carousel-nav carousel-next" onclick="nextSlide()"><i
+						class="fas fa-chevron-right"></i></button>
+				<div class="carousel-controls">
+					<span class="carousel-dot active" onclick="goToSlide(0)"></span>
+					<span class="carousel-dot" onclick="goToSlide(1)"></span>
+					<span class="carousel-dot" onclick="goToSlide(2)"></span>
+				</div>
+			</div>
+
+			<!-- Stats -->
+			<div class="stats-container">
+				<div class="stat-card">
+					<div class="stat-number">50+</div>
+					<div class="stat-label">Profesionales</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-number">5K+</div>
+					<div class="stat-label">Citas Realizadas</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-number">4.9</div>
+					<div class="stat-label">Calificación Promedio</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-number">98%</div>
+					<div class="stat-label">Clientes Satisfechos</div>
+				</div>
+			</div>
+
+			<!-- Services Cards -->
+			<h2 class="section-title">Servicios Destacados</h2>
+			<div class="services-grid" id="featuredServices">
+				<!-- Los servicios se cargan dinámicamente -->
+			</div>
+		</section>
+		<!-- Services Section -->
+		<section id="services" class="section">
+			<h1 class="section-title">Todos los Servicios</h1>
+			<div class="services-grid" id="allServices">
+				<!-- Los servicios se cargan dinámicamente -->
+			</div>
+		</section>
+
+		<!-- Booking Section -->
+		<section id="booking" class="section">
+			<h1 class="section-title">Reservar Cita</h1>
+			<div class="panel-card">
+				<h3><i class="fas fa-search"></i> Selecciona un Servicio</h3>
+				<div class="form-group">
+					<select id="serviceSelect" onchange="loadProfessionals()">
+						<option value="">-- Elige un servicio --</option>
+					</select>
+				</div>
+
+				<div id="professionalsContainer" style="display:none; margin-top: 2rem;">
+					<h3><i class="fas fa-users"></i> Profesionales Disponibles</h3>
+					<div class="professional-list" id="professionalList"></div>
+				</div>
+
+				<div id="bookingFormContainer" style="display:none; margin-top: 2rem;">
+					<h3><i class="fas fa-calendar-check"></i> Selecciona Fecha y Hora</h3>
+					<div class="form-group">
+						<label>Fecha</label>
+						<input type="date" id="bookingDate" min="">
+					</div>
+					<div class="form-group">
+						<label>Horarios Disponibles</label>
+						<div class="time-slots" id="timeSlots"></div>
+					</div>
+					<button class="btn btn-primary" onclick="confirmBooking()">Agendar Cita</button>
+				</div>
+			</div>
+		</section>
+
+		<!-- Profile Section -->
+		<section id="profile" class="section">
+			<h1 class="section-title">Mi Perfil</h1>
+			<div class="profile-container">
+				<div class="profile-info">
+					<div class="profile-header">
+						<div class="profile-avatar" id="profileAvatar"><i class="fas fa-user"></i></div>
+						<h2 id="profileName" th:text="${nombreUsuario}">Usuario Agendify</h2>
+					</div>
+
+					<form th:action="@{/usuario/actualizar-perfil}" method="post">
+						<input type="hidden" name="id" th:value="${usuarioId}">
+
+						<div class="form-group">
+							<label>Nombre completo</label>
+							<input type="text" name="nombre" placeholder="Tu nombre" th:value="${nombreUsuario}"
+								required>
+						</div>
+						<div class="form-group">
+							<label>Email</label>
+							<input type="email" id="profileEmail" name="email" placeholder="tu@email.com" required>
+						</div>
+						<div class="form-group">
+							<label>Teléfono</label>
+							<input type="tel" id="profilePhone" name="telefono" placeholder="+57 300 123 4567" required>
+						</div>
+						<button type="submit" class="btn btn-primary">Actualizar Perfil</button>
+					</form>
+
+					<a th:href="@{/logout}" class="btn logout-btn"
+						style="display: inline-block; text-align: center; text-decoration: none; width: 100%;">Cerrar
+						Sesión</a>
+
+					<form th:action="@{/usuario/eliminar-cuenta}" method="post"
+						onsubmit="return confirm('¿Estás seguro de eliminar tu cuenta?');">
+						<input type="hidden" name="id" th:value="${usuarioId}">
+						<button type="submit" class="btn delete-account-btn">Eliminar Cuenta</button>
+					</form>
+				</div>
+
+				<div class="appointments-list">
+					<h3><i class="fas fa-calendar-alt"></i> Mis Citas Programadas</h3>
+					<div id="userAppointments" style="margin-top: 1rem;">
+						<p id="noCitasMessage" style="text-align: center; color: var(--text-color); opacity: 0.7;">
+							Cargando tus citas...</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="logo" style="font-size: 2rem; margin-bottom: 1rem;"><i class="fas fa-scissors"></i> Agendify
+				Beauty</div>
+			<p>Tu belleza es nuestra prioridad</p>
+
+			<div class="footer-grid">
+				<div class="footer-section">
+					<h3>Navegación</h3>
+					<ul>
+						<li><a onclick="showSection('home')">Inicio</a></li>
+						<li><a onclick="showSection('services')">Servicios</a></li>
+						<li><a onclick="showSection('booking')">Reservar</a></li>
+						<li><a onclick="showSection('profile')">Mi Perfil</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Servicios Populares</h3>
+					<ul>
+						<li><a onclick="showSection('services')">Corte de Cabello</a></li>
+						<li><a onclick="showSection('services')">Coloración</a></li>
+						<li><a onclick="showSection('services')">Tratamientos</a></li>
+						<li><a onclick="showSection('services')">Manicure & Pedicure</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Legal</h3>
+					<ul>
+						<li><a href="#">Términos y Condiciones</a></li>
+						<li><a href="#">Política de Privacidad</a></li>
+						<li><a href="#">Política de Cancelación</a></li>
+						<li><a href="#">Preguntas Frecuentes</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Contacto</h3>
+					<div class="contact-info">
+						<p><i class="fas fa-map-marker-alt"></i> Fusagasugá, Cundinamarca</p>
+						<p><i class="fas fa-phone"></i> +57 300 123 4567</p>
+						<p><i class="fas fa-envelope"></i> info@agendifybeauty.com</p>
+						<p><i class="fas fa-clock"></i> Lun-Sab: 9AM-7PM</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="social-links">
+				<a href="#"><i class="fab fa-facebook-f"></i></a>
+				<a href="#"><i class="fab fa-instagram"></i></a>
+				<a href="#"><i class="fab fa-whatsapp"></i></a>
+				<a href="#"><i class="fab fa-tiktok"></i></a>
+				<a href="#"><i class="fab fa-youtube"></i></a>
+			</div>
+
+			<p
+				style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem;">
+				&copy; 2025 Agendify Beauty. Todos los derechos reservados. | Hecho con 💕 para ti
+			</p>
+		</div>
+	</footer>
+	<script th:src="@{/js/scripsUsuario.js}"></script>
+	<script th:inline="javascript">
+		const usuarioId = /*[[${usuarioId}]]*/ null;
+
+		// Cargar servicios desde el servidor
+		async function loadServices() {
+			try {
+				const response = await fetch('/usuario/servicios');
+				const servicios = await response.json();
+
+				const serviceSelect = document.getElementById('serviceSelect');
+				const allServicesContainer = document.getElementById('allServices');
+				const featuredServicesContainer = document.getElementById('featuredServices');
+
+				serviceSelect.innerHTML = '<option value="">-- Elige un servicio --</option>';
+				allServicesContainer.innerHTML = '';
+				if (featuredServicesContainer) featuredServicesContainer.innerHTML = '';
+
+				servicios.forEach(servicio => {
+					const option = document.createElement('option');
+					option.value = servicio.id;
+					option.textContent = servicio.nombre;
+					serviceSelect.appendChild(option);
+
+					const card = createServiceCard(servicio);
+					allServicesContainer.appendChild(card);
+					if (featuredServicesContainer && servicios.indexOf(servicio) < 3) {
+						featuredServicesContainer.appendChild(card.cloneNode(true));
+					}
+				});
+			} catch (error) {
+				console.error('Error cargando servicios:', error);
+			}
+		}
+
+		function createServiceCard(servicio) {
+			const card = document.createElement('div');
+			card.className = 'service-card';
+			card.innerHTML = `
+					                <div class="service-image">💇‍♀️</div>
+					                <h3>${servicio.nombre}</h3>
+					                <div class="service-price">$${servicio.precio.toLocaleString()}</div>
+					                <p>${servicio.descripcion}</p>
+					                <p><strong>Duración:</strong> ${servicio.duracion}</p>
+					            `;
+			card.addEventListener('click', function () {
+				document.getElementById('serviceSelect').value = servicio.id;
+				loadProfessionals();
+				showSection('booking');
+			});
+			return card;
+		}
+
+		async function loadProfessionals() {
+			const serviceId = document.getElementById('serviceSelect').value;
+			if (!serviceId) {
+				document.getElementById('professionalsContainer').style.display = 'none';
+				document.getElementById('bookingFormContainer').style.display = 'none';
+				return;
+			}
+
+			try {
+				const response = await fetch(`/usuario/profesionales/${serviceId}`);
+				const profesionales = await response.json();
+
+				const container = document.getElementById('professionalList');
+				container.innerHTML = '';
+
+				profesionales.forEach(prof => {
+					const div = document.createElement('div');
+					div.className = 'professional-item';
+					div.innerHTML = `
+					                        <div class="professional-info">
+					                            <h4>${prof.usuario.nombre}</h4>
+					                            <p>${prof.especialidad}</p>
+					                        </div>
+					                        <button class="btn btn-primary" onclick="selectProfessional(${prof.id}, '${prof.usuario.nombre}', ${serviceId})">Seleccionar</button>
+					                    `;
+					container.appendChild(div);
+				});
+
+				document.getElementById('professionalsContainer').style.display = 'block';
+			} catch (error) {
+				console.error('Error cargando profesionales:', error);
+			}
+		}
+
+		let selectedProfessional = null;
+		let selectedService = null;
+		let selectedTime = null;
+
+		function selectProfessional(profId, name, serviceId) {
+			selectedProfessional = {id: profId, name: name};
+			selectedService = serviceId;
+
+			document.getElementById('bookingFormContainer').style.display = 'block';
+
+			const today = new Date().toISOString().split('T')[0];
+			document.getElementById('bookingDate').min = today;
+			document.getElementById('bookingDate').value = today;
+
+			loadTimeSlots(today);
+			document.getElementById('bookingFormContainer').scrollIntoView({behavior: 'smooth'});
+		}
+
+		function loadTimeSlots(date) {
+			const times = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
+			const container = document.getElementById('timeSlots');
+			container.innerHTML = '';
+
+			times.forEach(time => {
+				const slot = document.createElement('div');
+				slot.className = 'time-slot';
+				slot.textContent = time;
+				slot.onclick = function () {
+					document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+					this.classList.add('selected');
+					selectedTime = this.textContent;
+				};
+				container.appendChild(slot);
+			});
+		}
+
+		async function confirmBooking() {
+			const fecha = document.getElementById('bookingDate').value;
+
+			if (!fecha || !selectedTime) {
+				showAlert('Por favor selecciona fecha y hora', 'error');
+				return;
+			}
+
+			try {
+				const formData = new URLSearchParams();
+				formData.append('servicioId', selectedService);
+				formData.append('profesionalId', selectedProfessional.id);
+				formData.append('fecha', fecha);
+				formData.append('hora', selectedTime);
+
+				const response = await fetch('/usuario/agendar-cita', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+					body: formData
+				});
+
+				const result = await response.text();
+				if (result === 'success') {
+					showAlert(`¡Tu cita ha sido agendada con ${selectedProfessional.name} para el ${fecha} a las ${selectedTime}!`, 'success');
+					document.getElementById('bookingFormContainer').style.display = 'none';
+					document.getElementById('serviceSelect').value = '';
+					document.getElementById('professionalsContainer').style.display = 'none';
+					selectedProfessional = null;
+					selectedService = null;
+					selectedTime = null;
+					loadUserAppointments();
+				} else {
+					showAlert('Error al agendar cita', 'error');
+				}
+			} catch (error) {
+				console.error('Error:', error);
+				showAlert('Error al agendar cita', 'error');
+			}
+		}
+
+		async function loadUserAppointments() {
+			try {
+				const response = await fetch('/usuario/mis-citas');
+				const citas = await response.json();
+
+				const container = document.getElementById('userAppointments');
+				const noCitasMessage = document.getElementById('noCitasMessage');
+
+				if (!citas || citas.length === 0) {
+					noCitasMessage.textContent = "No tienes citas programadas";
+					return;
+				}
+
+				noCitasMessage.style.display = 'none';
+				container.innerHTML = '';
+
+				citas.forEach(cita => {
+					const div = document.createElement('div');
+					div.className = 'appointment-item';
+
+					const fecha = new Date(cita.fechaHora);
+					const fechaFormato = fecha.toLocaleDateString();
+					const horaFormato = fecha.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+					let statusText = cita.estado === 'pendiente' ? 'Pendiente' :
+						cita.estado === 'confirmada' ? 'Confirmada' : 'Completada';
+					let statusClass = `status-${cita.estado}`;
+
+					div.innerHTML = `
+					                        <h4>${cita.servicio.nombre}</h4>
+					                        <p><strong>Profesional:</strong> ${cita.profesional.usuario.nombre}</p>
+					                        <p><strong>Descripción:</strong> ${cita.servicio.descripcion}</p>
+					                        <p><strong>Fecha:</strong> ${fechaFormato}</p>
+					                        <p><strong>Hora:</strong> ${horaFormato}</p>
+					                        <span class="appointment-status ${statusClass}">${statusText}</span>
+					                    `;
+					container.appendChild(div);
+				});
+			} catch (error) {
+				console.error('Error cargando citas:', error);
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			loadServices();
+			loadUserAppointments();
+
+			document.getElementById('bookingDate').addEventListener('change', function (e) {
+				loadTimeSlots(e.target.value);
+			});
+		});
+	</script>
+</body>
+
+</html>

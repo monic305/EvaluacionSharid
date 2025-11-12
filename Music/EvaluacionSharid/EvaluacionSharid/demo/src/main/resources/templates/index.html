@@ -1,124 +1,530 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <title>CRUD Peluquería</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background: #eee; }
-        form { margin-bottom: 20px; }
-        input[type="text"], input[type="email"], input[type="password"] { padding: 5px; margin-right: 10px; }
-        button { padding: 5px 10px; }
-        a { text-decoration: none; color: #007BFF; }
-        a:hover { text-decoration: underline; }
-
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; 
-                 width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; 
-                         border: 1px solid #888; width: 400px; border-radius: 8px; }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: #000; }
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Agendify - Inicio</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="stylesheet" th:href="@{/css/stylesInic.css}">
 </head>
-<body>
 
-<!-- NAV -->
-<nav style="margin-bottom: 20px;">
-    <a href="/profesionales" style="margin-right: 15px; text-decoration: none; color: #007BFF;">Profesionales</a>
-    <a href="/usuarios" style="text-decoration: none; color: #007BFF;">Usuarios</a>
-</nav>
+<body data-theme="light">
+	<!-- Animated Background -->
+	<div class="animated-bg" id="animatedBg"></div>
 
-<h1>CRUD Usuarios - Peluquería</h1>
+	<!-- Custom Alert -->
+	<div id="customAlert" class="custom-alert">
+		<i class="fas fa-check-circle alert-icon"></i>
+		<p id="alertMessage"></p>
+	</div>
 
-<!-- Formulario agregar -->
-<form th:action="@{/guardar}" th:object="${usuario}" method="post">
-    <input type="hidden" th:field="*{id}" />
-    <input type="hidden" th:field="*{fechaRegistro}" />
-    <input type="text" placeholder="Nombre" th:field="*{nombre}" required />
-    <input type="email" placeholder="Email" th:field="*{email}" required />
-    <input type="password" placeholder="Password" th:field="*{password}" required />
-    <input type="text" placeholder="Teléfono" th:field="*{telefono}" />
-    <button type="submit">Guardar</button>
-</form>
+	<!-- Scroll to Top Button -->
+	<button class="scroll-top" id="scrollTop" onclick="scrollToTop()">
+		<i class="fas fa-arrow-up"></i>
+	</button>
 
-<!-- Tabla de usuarios -->
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Fecha Registro</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr th:each="u : ${usuarios}">
-            <td th:text="${u.id}"></td>
-            <td th:text="${u.nombre}"></td>
-            <td th:text="${u.email}"></td>
-            <td th:text="${u.telefono}"></td>
-            <td th:text="${u.fechaRegistro != null ? #temporals.format(u.fechaRegistro, 'dd/MM/yyyy HH:mm') : ''}"
-                th:attr="data-fecharegistro=${u.fechaRegistro}"></td>
-            <td>
-                <a href="#"
-                   th:attr="data-id=${u.id}, 
-                            data-nombre=${u.nombre}, 
-                            data-email=${u.email}, 
-                            data-password=${u.password}, 
-                            data-telefono=${u.telefono}, 
-                            data-fecharegistro=${u.fechaRegistro}"
-                   onclick="openModal(this)">Editar</a> |
-                <a th:href="@{'/eliminar/' + ${u.id}}" onclick="return confirm('¿Seguro que quieres eliminar?');">Eliminar</a>
-            </td>
-        </tr>
-    </tbody>
-</table>
+	<!-- Navigation -->
+	<nav>
+		<div class="nav-container">
+			<div class="logo" onclick="showPage('home')">
+				<i class="fas fa-scissors"></i> Agendify Beauty
+			</div>
+			<ul class="nav-links">
+				<li><a onclick="showPage('services')">Servicios</a></li>
+				<li><a onclick="showPage('about')">Nosotros</a></li>
+				<li><a onclick="showPage('testimonials')">Testimonios</a></li>
+				<li>
+					<button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+						<i class="fas fa-moon" id="themeIcon"></i>
+					</button>
+				</li>
+				<li class="auth-buttons">
+					<button class="btn-login" onclick="openModal('loginModal')">Iniciar Sesión</button>
+					<button class="btn-register" onclick="openModal('registerModal')">Registrarse</button>
+				</li>
+			</ul>
+		</div>
+	</nav>
 
-<!-- Modal -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Editar Usuario</h2>
-        <form id="modalForm" th:action="@{/guardar}" method="post">
-            <input type="hidden" name="id" id="modalId" />
-            <input type="hidden" name="fechaRegistro" id="modalFechaRegistro" />
-            <input type="text" name="nombre" id="modalNombre" placeholder="Nombre" required /><br/><br/>
-            <input type="email" name="email" id="modalEmail" placeholder="Email" required /><br/><br/>
-            <input type="password" name="password" id="modalPassword" placeholder="Password" required /><br/><br/>
-            <input type="text" name="telefono" id="modalTelefono" placeholder="Teléfono" /><br/><br/>
-            <button type="submit">Actualizar</button>
-        </form>
-    </div>
-</div>
+	<!-- Login Modal -->
+	<div id="loginModal" class="modal">
+		<div class="modal-content">
+			<span class="modal-close" onclick="closeModal('loginModal')">&times;</span>
+			<h2 class="modal-title"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h2>
+			<form th:action="@{/login}" method="post">
+				<div class="form-group">
+					<label for="loginEmail"><i class="fas fa-envelope"></i> Correo Electrónico</label>
+					<input type="email" id="loginEmail" name="loginEmail" required placeholder="tu@email.com">
+				</div>
+				<div class="form-group">
+					<label for="loginPassword"><i class="fas fa-lock"></i> Contraseña</label>
+					<input type="password" id="loginPassword" name="loginPassword" required placeholder="••••••••">
+				</div>
+				<button type="submit" class="btn-submit">
+					<i class="fas fa-sign-in-alt"></i> Ingresar
+				</button>
+				<div class="modal-footer">
+					¿No tienes cuenta? <a onclick="closeModal('loginModal'); openModal('registerModal')">Regístrate
+						aquí</a>
+				</div>
+			</form>
+		</div>
+	</div>
 
-<script>
-    function openModal(element) {
-        document.getElementById('modalId').value = element.getAttribute('data-id');
-        document.getElementById('modalNombre').value = element.getAttribute('data-nombre');
-        document.getElementById('modalEmail').value = element.getAttribute('data-email');
-        document.getElementById('modalPassword').value = element.getAttribute('data-password');
-        document.getElementById('modalTelefono').value = element.getAttribute('data-telefono');
-        document.getElementById('modalFechaRegistro').value = element.getAttribute('data-fecharegistro');
-        document.getElementById('editModal').style.display = 'block';
-    }
+	<!-- Register Modal -->
+	<div id="registerModal" class="modal">
+		<div class="modal-content">
+			<span class="modal-close" onclick="closeModal('registerModal')">&times;</span>
+			<h2 class="modal-title"><i class="fas fa-user-plus"></i> Crear Cuenta</h2>
+			<form th:action="@{/registro}" method="post" id="registerForm">
+				<div class="form-group">
+					<label>Tipo de Usuario</label>
+					<div class="user-type-selector">
+						<div class="user-type-btn active" onclick="selectUserType('client')">
+							<i class="fas fa-user"></i>
+							<div>Cliente</div>
+						</div>
+						<div class="user-type-btn" onclick="selectUserType('professional')">
+							<i class="fas fa-scissors"></i>
+							<div>Profesional</div>
+						</div>
+					</div>
+					<input type="hidden" id="userType" name="userType" value="client">
+				</div>
+				<div class="form-group">
+					<label for="registerName"><i class="fas fa-user"></i> Nombre Completo</label>
+					<input type="text" id="registerName" name="registerName" required placeholder="Tu nombre completo">
+				</div>
+				<div class="form-group">
+					<label for="registerEmail"><i class="fas fa-envelope"></i> Correo Electrónico</label>
+					<input type="email" id="registerEmail" name="registerEmail" required placeholder="tu@email.com">
+				</div>
+				<div class="form-group">
+					<label for="registerPhone"><i class="fas fa-phone"></i> Teléfono</label>
+					<input type="tel" id="registerPhone" name="registerPhone" required placeholder="+57 300 123 4567">
+				</div>
+				<div class="form-group">
+					<label for="registerPassword"><i class="fas fa-lock"></i> Contraseña</label>
+					<input type="password" id="registerPassword" name="registerPassword" required
+						placeholder="Mínimo 8 caracteres">
+				</div>
+				<div class="form-group">
+					<label for="registerConfirmPassword"><i class="fas fa-lock"></i> Confirmar Contraseña</label>
+					<input type="password" id="registerConfirmPassword" required placeholder="Repite tu contraseña">
+				</div>
 
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
-    }
+				<!-- Campos adicionales para profesional -->
+				<div id="professionalFields" style="display:none;">
+					<div class="form-group">
+						<label for="especialidad"><i class="fas fa-briefcase"></i> Especialidad</label>
+						<input type="text" id="especialidad" name="especialidad"
+							placeholder="Ej: Coloración, Cortes, etc.">
+					</div>
+					<div class="form-group">
+						<label for="horarioDisponible"><i class="fas fa-clock"></i> Horario Disponible</label>
+						<input type="datetime-local" id="horarioDisponible" name="horarioDisponible">
+					</div>
+				</div>
 
-    // Cerrar modal si se hace click fuera
-    window.onclick = function(event) {
-        var modal = document.getElementById('editModal');
-        if (event.target == modal) {
-            closeModal();
-        }
-    }
-</script>
+				<div class="checkbox-group">
+					<input type="checkbox" id="termsCheckbox" required>
+					<label for="termsCheckbox">
+						Acepto los <a onclick="openModal('termsModal')">Términos y Condiciones</a> y la Política de
+						Privacidad
+					</label>
+				</div>
+				<button type="submit" class="btn-submit" id="registerBtn" disabled>
+					<i class="fas fa-user-plus"></i> Registrarse
+				</button>
+				<div class="modal-footer">
+					¿Ya tienes cuenta? <a onclick="closeModal('registerModal'); openModal('loginModal')">Inicia sesión
+						aquí</a>
+				</div>
+			</form>
+		</div>
+	</div>
 
+	<!-- Terms and Conditions Modal -->
+	<div id="termsModal" class="modal">
+		<div class="modal-content">
+			<span class="modal-close" onclick="closeModal('termsModal')">&times;</span>
+			<h2 class="modal-title"><i class="fas fa-file-contract"></i> Términos y Condiciones</h2>
+			<div class="terms-content">
+				<h3>1. Aceptación de Términos</h3>
+				<p>Al registrarse en Agendify Beauty, usted acepta cumplir con estos términos y condiciones.</p>
+				<!-- Resto del contenido de términos igual -->
+			</div>
+		</div>
+	</div>
+
+	<!-- HOME PAGE -->
+	<div id="home" class="page active">
+		<div class="container">
+			<div class="hero">
+				<h1>✨ Tu Belleza, Nuestra Pasión ✨</h1>
+				<p>Descubre los mejores servicios de peluquería y belleza</p>
+				<div class="hero-buttons">
+					<button class="btn-primary" onclick="showPage('services')">
+						<i class="fas fa-cut"></i> Ver Servicios
+					</button>
+					<button class="btn-secondary" onclick="openModal('registerModal')">
+						<i class="fas fa-calendar-check"></i> Agendar Cita
+					</button>
+				</div>
+			</div>
+			<!-- Features Section -->
+			<section class="features-section">
+				<h2 class="section-title">¿Por Qué Elegirnos?</h2>
+				<div class="features-grid">
+					<div class="feature-card">
+						<div class="feature-icon"><i class="fas fa-award"></i></div>
+						<h3>Profesionales Certificados</h3>
+						<p>Nuestro equipo cuenta con certificaciones internacionales y más de 10 años de experiencia en
+							el sector de la belleza.</p>
+					</div>
+					<div class="feature-card">
+						<div class="feature-icon"><i class="fas fa-star"></i></div>
+						<h3>Productos Premium</h3>
+						<p>Utilizamos únicamente productos de las mejores marcas internacionales para garantizar
+							resultados excepcionales.</p>
+					</div>
+					<div class="feature-card">
+						<div class="feature-icon"><i class="fas fa-clock"></i></div>
+						<h3>Horarios Flexibles</h3>
+						<p>Abierto de lunes a sábado con horarios extendidos para adaptarnos a tu agenda y necesidades.
+						</p>
+					</div>
+					<div class="feature-card">
+						<div class="feature-icon"><i class="fas fa-spa"></i></div>
+						<h3>Ambiente Relajante</h3>
+						<p>Instalaciones modernas y acogedoras diseñadas para brindarte una experiencia de relajación
+							total.</p>
+					</div>
+					<div class="feature-card">
+						<div class="feature-icon"><i class="fas fa-percentage"></i></div>
+						<h3>Promociones Exclusivas</h3>
+						<p>Descuentos especiales, paquetes combinados y programa de puntos para clientes frecuentes.</p>
+					</div>
+					<div class="feature-card">
+						<div class="feature-icon"><i class="fas fa-heart"></i></div>
+						<h3>Atención Personalizada</h3>
+						<p>Cada cliente es único. Ofrecemos consultas personalizadas para entender tus necesidades
+							específicas.</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- Gallery Section -->
+			<section class="gallery-section">
+				<h2 class="section-title">Nuestro Salón</h2>
+				<div class="gallery-grid">
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://agendit.com.py/_next/image?url=%2Fblog%2Fsalondebelleza.png&w=1200&q=75"
+								alt=""></div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://madivasalon.com/wp-content/uploads/2024/09/Salon-de-belleza-en-San-Cristobal.jpg"
+								alt=""></div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://cdn1.treatwell.net/images/view/v2.i9161701.w1080.h720.x51172D38/" alt="">
+						</div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://img.freepik.com/fotos-premium/galeria-obras-salon-belleza-sitio-web-brillante_943281-46859.jpg?semt=ais_hybrid&w=740&q=80"
+								alt=""></div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://malldelsur.pe/wp-content/uploads/2024/08/WEB-TIENDA-4.jpg" alt=""></div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://thumbs.dreamstime.com/b/moderno-sal%C3%B3n-de-belleza-interior-lujosa-tienda-cosm%C3%A9tica-con-dise%C3%B1o-rosa-y-luz-led-servicios-u%C3%B1as-brillantes-manicura-moda-298889251.jpg"
+								alt=""></div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://previews.123rf.com/images/alvarog1970/alvarog19702204/alvarog1970220400051/184566075-interior-view-of-a-modern-hair-and-beauty-salon.jpg"
+								alt=""></div>
+					</div>
+					<div class="gallery-item">
+						<div class="gallery-placeholder"><img
+								src="https://www.shutterstock.com/image-photo/barbershop-interior-modern-hair-beauty-260nw-2092464307.jpg"
+								alt=""></div>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+
+	<!-- SERVICES PAGE -->
+	<div id="services" class="page">
+		<div class="container">
+			<section class="services-section">
+				<h2 class="section-title">💇‍♀️ Nuestros Servicios ✂️</h2>
+				<div class="services-grid">
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://cdn.euroinnova.edu.es/img/subidasEditor/peluquer%C3%ADa-1615496220.webp">
+						</div>
+						<h3>Corte de Cabello</h3>
+						<div class="service-price">$30.000</div>
+						<p>Corte profesional con asesoría personalizada según tu estilo y tipo de cabello. Incluye
+							lavado y secado.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgr_Tj90uD8PdZ2fdc7Sz8sa1-x8NWbu44Ng&s"
+								alt=""></div>
+						<h3>Tinte y Coloración</h3>
+						<div class="service-price">$80.000</div>
+						<p>Coloración completa con productos de alta calidad italiana. Incluye tratamiento de protección
+							capilar.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQesBvfVNMXJHrBlUUHzJEvN_nmB6bXcvYQuw&s"
+								alt=""></div>
+						<h3>Tratamientos Capilares</h3>
+						<div class="service-price">$60.000</div>
+						<p>Hidratación profunda, keratina, botox capilar y tratamientos especializados para revitalizar
+							tu cabello.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvigUY9fMv1bzN1ushtcoK0FmhZCrTNFeMig&s"
+								alt=""></div>
+						<h3>Manicure y Pedicure</h3>
+						<div class="service-price">$45.000</div>
+						<p>Cuidado completo de manos y pies con esmaltado gel de larga duración. Incluye masaje
+							relajante.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdq6dawW2jr3SEn5Z31hj2DCdD5asFPzy2MA&s"
+								alt=""></div>
+						<h3>Peinados para Eventos</h3>
+						<div class="service-price">$120.000</div>
+						<p>Peinados elegantes para bodas, graduaciones y eventos especiales. Incluye prueba previa.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://solecentrodeimagen.com/wp-content/uploads/2015/08/tipos-de-tratamientos-faciales.jpg">
+						</div>
+						<h3>Tratamientos Faciales</h3>
+						<div class="service-price">$70.000</div>
+						<p>Limpieza facial profunda, mascarillas personalizadas y cuidado integral de la piel con
+							productos premium.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQe_kdzGI_TWu_mobQ05q0RYflLIkb_cX_SYw&s"
+								alt=""></div>
+						<h3>Depilación</h3>
+						<div class="service-price">$35.000</div>
+						<p>Depilación con cera de alta calidad en diferentes zonas. Productos hipoalergénicos
+							disponibles.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6e8ZMbwzaeAluB_oLIP7t_Mk98LhBllRyGg&s"
+								alt=""></div>
+						<h3>Maquillaje Profesional</h3>
+						<div class="service-price">$90.000</div>
+						<p>Maquillaje profesional para cualquier ocasión con productos MAC, Sephora y marcas premium.
+						</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://www.maybelline.es/-/media/project/loreal/brand-sites/mny/emea/iberic/imaojo-(1).png?la=es-es&h=400&w=600&rev=3c79396d7ceb45b2b72330ed81621426&hash=E8EEEDE83754BA4BF686678B8DC5C50A"
+								alt=""></div>
+						<h3>Diseño de Cejas</h3>
+						<div class="service-price">$25.000</div>
+						<p>Perfilado y diseño de cejas con técnicas de microblading y laminado. Resultados naturales
+							garantizados.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="data:image/jpeg;base64,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"
+								alt=""></div>
+						<h3>Extensiones de Cabello</h3>
+						<div class="service-price">$250.000</div>
+						<p>Extensiones de cabello natural con técnicas de keratina. Aumenta volumen y largo
+							instantáneamente.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNU7u8_w1Hu5pELFPDlT-4rDhEAg1KBQUosw&s"
+								alt=""></div>
+						<h3>Maquillaje Permanente</h3>
+						<div class="service-price">$180.000</div>
+						<p>Micropigmentación de cejas, labios y delineado de ojos. Resultados duraderos y naturales.</p>
+					</div>
+					<div class="service-card">
+						<div class="service-image"><img
+								src="https://www.espaciokibo.com/wp-content/uploads/2021/10/E-KIBO-820x350-1.jpg"
+								alt=""></div>
+						<h3>Alisados y Permanentes</h3>
+						<div class="service-price">$150.000</div>
+						<p>Alisado brasileño, japonés y permanentes con productos de última generación. Duración hasta 6
+							meses.</p>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+
+	<!-- ABOUT PAGE -->
+	<div id="about" class="page">
+		<div class="container">
+			<section class="about-section">
+				<div class="about-content">
+					<div class="about-text">
+						<h2>✨ Sobre Agendify Beauty ✨</h2>
+						<p>Somos un salón de belleza comprometido con realzar tu belleza natural. Con más de 10 años de
+							experiencia en el sector, nuestro equipo de profesionales certificados está dedicado a
+							brindarte los mejores servicios con productos de la más alta calidad.</p>
+						<p>Creemos que cada persona es única y merece un tratamiento personalizado. Por eso, trabajamos
+							de cerca contigo para entender tus necesidades y crear el look perfecto que resalte tu
+							personalidad y estilo.</p>
+						<div class="about-stats">
+							<div class="stat-item">
+								<div class="stat-number">10+</div>
+								<div>Años de Experiencia</div>
+							</div>
+							<div class="stat-item">
+								<div class="stat-number">5000+</div>
+								<div>Clientes Felices</div>
+							</div>
+							<div class="stat-item">
+								<div class="stat-number">15</div>
+								<div>Profesionales Expertos</div>
+							</div>
+							<div class="stat-item">
+								<div class="stat-number">4.9⭐</div>
+								<div>Calificación Promedio</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="mission-vision">
+					<div class="mission-card">
+						<h3><i class="fas fa-bullseye"></i> Nuestra Misión</h3>
+						<p>Brindar servicios de belleza de excelencia, utilizando las mejores técnicas y productos del
+							mercado, para que cada cliente se sienta hermosa, confiada y especial.</p>
+					</div>
+					<div class="mission-card">
+						<h3><i class="fas fa-eye"></i> Nuestra Visión</h3>
+						<p>Ser el salón de belleza líder en la región, reconocido por nuestra innovación, calidad de
+							servicio y compromiso con la satisfacción del cliente.</p>
+					</div>
+					<div class="mission-card">
+						<h3><i class="fas fa-heart"></i> Nuestros Valores</h3>
+						<p>Profesionalismo, pasión por la belleza, innovación constante, respeto por nuestros clientes,
+							trabajo en equipo y compromiso con la excelencia.</p>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="brand-name" style="font-size: 2.5rem; margin-bottom: 1.5rem;">
+				<i class="fas fa-scissors"></i> Agendify Beauty
+			</div>
+			<p style="font-size: 1.2rem; margin-bottom: 2rem;">Tu belleza es nuestra prioridad</p>
+
+			<div class="footer-grid">
+				<div class="footer-section">
+					<h3>Navegación</h3>
+					<ul>
+						<li><a onclick="showPage('home')">Inicio</a></li>
+						<li><a onclick="showPage('services')">Servicios</a></li>
+						<li><a onclick="showPage('about')">Nosotros</a></li>
+						<li><a onclick="showPage('testimonials')">Testimonios</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Servicios Populares</h3>
+					<ul>
+						<li><a onclick="showPage('services')">Corte de Cabello</a></li>
+						<li><a onclick="showPage('services')">Coloración</a></li>
+						<li><a onclick="showPage('services')">Tratamientos</a></li>
+						<li><a onclick="showPage('services')">Manicure & Pedicure</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Legal</h3>
+					<ul>
+						<li><a href="#">Términos y Condiciones</a></li>
+						<li><a href="#">Política de Privacidad</a></li>
+						<li><a href="#">Política de Cancelación</a></li>
+						<li><a href="#">Preguntas Frecuentes</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Contacto</h3>
+					<div class="contact-info">
+						<p><i class="fas fa-map-marker-alt"></i> Fusagasugá, Cundinamarca</p>
+						<p><i class="fas fa-phone"></i> +57 300 123 4567</p>
+						<p><i class="fas fa-envelope"></i> info@agendifybeauty.com</p>
+						<p><i class="fas fa-clock"></i> Lun-Sab: 9AM-7PM</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="social-links">
+				<a href="#"><i class="fab fa-facebook-f"></i></a>
+				<a href="#"><i class="fab fa-instagram"></i></a>
+				<a href="#"><i class="fab fa-whatsapp"></i></a>
+				<a href="#"><i class="fab fa-tiktok"></i></a>
+				<a href="#"><i class="fab fa-youtube"></i></a>
+			</div>
+
+			<p style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.3);">
+				&copy; 2025 Agendify Beauty. Todos los derechos reservados. | Hecho con 💕 para ti
+			</p>
+		</div>
+	</footer>
+	<script th:src="@{/js/scripsInicio.js}"></script>
+	<script>
+		// Mostrar/ocultar campos de profesional
+		function selectUserType(type) {
+			document.querySelectorAll('.user-type-btn').forEach(btn => {
+				btn.classList.remove('active');
+			});
+			event.target.closest('.user-type-btn').classList.add('active');
+			document.getElementById('userType').value = type;
+
+			const professionalFields = document.getElementById('professionalFields');
+			if (type === 'professional') {
+				professionalFields.style.display = 'block';
+				document.getElementById('especialidad').setAttribute('required', 'required');
+			} else {
+				professionalFields.style.display = 'none';
+				document.getElementById('especialidad').removeAttribute('required');
+			}
+		}
+
+		// Validar contraseñas
+		document.getElementById('registerForm').addEventListener('submit', function (e) {
+			const password = document.getElementById('registerPassword').value;
+			const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+			if (password !== confirmPassword) {
+				e.preventDefault();
+				alert('Las contraseñas no coinciden');
+			}
+		});
+	</script>
 </body>
+
 </html>
