@@ -7,75 +7,82 @@ import java.util.List;
 @Table(name = "servicio")
 public class Servicio {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-    private String nombre;
-    private String descripcion;
-    private String duracion;
-    private Double precio;
+	private String nombre;
+	private String descripcion;
+	private String duracion;
+	private Double precio;
 
-    @OneToMany(mappedBy = "servicio")
-    private List<Cita> citas;
+	@ManyToOne
+	@JoinColumn(name = "profesional_id")
+	private Profesional profesional;
 
-    // Getters y Setters
-    public Integer getId() {
-        return id;
-    }
+	@OneToMany(mappedBy = "servicio")
+	private List<Cita> citas;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
-    public String getNombre() {
-        return nombre;
-    }
+	public Integer getId() {
+		return id;
+	}
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
-    public String getDescripcion() {
-        return descripcion;
-    }
+	public String getNombre() {
+		return nombre;
+	}
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
 
-    public String getDuracion() {
-        return duracion;
-    }
+	public String getDescripcion() {
+		return descripcion;
+	}
 
-    public void setDuracion(String duracion) {
-        this.duracion = duracion;
-    }
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
 
-    public Double getPrecio() {
-        return precio;
-    }
+	public String getDuracion() {
+		return duracion;
+	}
 
-    public void setPrecio(Double precio) {
-        this.precio = precio;
-    }
+	public void setDuracion(String duracion) {
+		this.duracion = duracion;
+	}
 
-    public List<Cita> getCitas() {
-        return citas;
-    }
+	public Double getPrecio() {
+		return precio;
+	}
 
-    public void setCitas(List<Cita> citas) {
-        this.citas = citas;
-    }
+	public void setPrecio(Double precio) {
+		this.precio = precio;
+	}
 
-    @Override
-    public String toString() {
-        return "Servicio{" +
-                "id=" + id +
-                ", nombre='" + nombre + '\'' +
-                ", descripcion='" + descripcion + '\'' +
-                ", duracion='" + duracion + '\'' +
-                ", precio=" + precio +
-                '}';
-    }
+	public Profesional getProfesional() {
+		return profesional;
+	}
+
+	public void setProfesional(Profesional profesional) {
+		this.profesional = profesional;
+	}
+
+	public List<Cita> getCitas() {
+		return citas;
+	}
+
+	public void setCitas(List<Cita> citas) {
+		this.citas = citas;
+	}
+
+	@Override
+	public String toString() {
+		return "Servicio{" + "id=" + id + ", nombre='" + nombre + '\'' + ", descripcion='" + descripcion + '\''
+				+ ", duracion='" + duracion + '\'' + ", precio=" + precio + '}';
+	}
 }

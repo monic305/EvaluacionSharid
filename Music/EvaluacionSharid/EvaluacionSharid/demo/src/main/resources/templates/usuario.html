@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Agendify - Usuario</title>
+	<title>GlowBeauty - Usuario</title>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 	<link rel="stylesheet" th:href="@{/css/stylesUsua.css}">
 </head>
@@ -20,7 +20,7 @@
 	<nav>
 		<div class="nav-container">
 			<div class="logo" onclick="showSection('home')">
-				<i class="fas fa-scissors"></i> Agendify Beauty
+				<i class="fas fa-scissors"></i> GlowBeauty
 			</div>
 			<ul class="nav-links">
 				<li><a onclick="showSection('home')">Inicio</a></li>
@@ -45,17 +45,28 @@
 		</div>
 	</nav>
 
-	<!-- Hidden data for JavaScript -->
+
 	<input type="hidden" id="usuarioId" th:value="${usuarioId}">
 	<input type="hidden" id="nombreUsuario" th:value="${nombreUsuario}">
 
 	<!-- Main Content -->
 	<main>
+
+		<!--alertas-->
+		<div th:if="${success}" class="alert alert-success"
+			style="margin: 1rem auto; max-width: 1200px; padding: 1rem; background: #10b981; color: white; border-radius: 8px; text-align: center;">
+			<span th:text="${success}"></span>
+		</div>
+		<div th:if="${error}" class="alert alert-error"
+			style="margin: 1rem auto; max-width: 1200px; padding: 1rem; background: #ef4444; color: white; border-radius: 8px; text-align: center;">
+			<span th:text="${error}"></span>
+		</div>
+
 		<!-- Home Section -->
 		<section id="home" class="section active">
 			<div class="hero">
 				<div class="hero-content">
-					<h1>Bienvenido, <span th:text="${nombreUsuario}">Usuario</span></h1>
+					<h1>Hola, <span th:text="${nombreUsuario}">Usuario</span></h1>
 					<p>Tu belleza es nuestra prioridad. Agenda tus servicios favoritos con los mejores profesionales</p>
 					<div class="hero-buttons">
 						<button class="btn btn-primary" onclick="showSection('services')">Explorar Servicios</button>
@@ -108,10 +119,6 @@
 					<div class="stat-label">Citas Realizadas</div>
 				</div>
 				<div class="stat-card">
-					<div class="stat-number">4.9</div>
-					<div class="stat-label">Calificación Promedio</div>
-				</div>
-				<div class="stat-card">
 					<div class="stat-number">98%</div>
 					<div class="stat-label">Clientes Satisfechos</div>
 				</div>
@@ -120,14 +127,35 @@
 			<!-- Services Cards -->
 			<h2 class="section-title">Servicios Destacados</h2>
 			<div class="services-grid" id="featuredServices">
-				<!-- Los servicios se cargan dinámicamente -->
+				<div th:each="servicio : ${servicios}" class="service-card">
+					<div class="service-icon"><i class="fas fa-cut"></i></div>
+					<h3 th:text="${servicio.nombre}">Servicio</h3>
+					<p th:text="${servicio.descripcion}">Descripción</p>
+					<div class="service-price">$<span th:text="${servicio.precio}">0</span></div>
+					<div class="service-duration"><i class="fas fa-clock"></i> <span th:text="${servicio.duracion}">0
+							min</span></div>
+					<button class="btn btn-primary" onclick="showSection('booking')">Reservar</button>
+				</div>
 			</div>
 		</section>
+
 		<!-- Services Section -->
 		<section id="services" class="section">
 			<h1 class="section-title">Todos los Servicios</h1>
-			<div class="services-grid" id="allServices">
-				<!-- Los servicios se cargan dinámicamente -->
+			<div class="services-grid">
+				<div th:each="servicio : ${servicios}" class="service-card">
+					<div class="service-icon"><i class="fas fa-cut"></i></div>
+					<h3 th:text="${servicio.nombre}">Servicio</h3>
+					<p th:text="${servicio.descripcion}">Descripción</p>
+					<div class="service-price">$<span th:text="${servicio.precio}">0</span></div>
+					<div class="service-duration"><i class="fas fa-clock"></i> <span th:text="${servicio.duracion}">0
+							min</span></div>
+					<div class="service-professional">
+						<strong>Profesional:</strong> <span
+							th:text="${servicio.profesional.usuario.nombre}">Profesional</span>
+					</div>
+					<button class="btn btn-primary" onclick="showSection('booking')">Reservar</button>
+				</div>
 			</div>
 		</section>
 
@@ -135,32 +163,68 @@
 		<section id="booking" class="section">
 			<h1 class="section-title">Reservar Cita</h1>
 			<div class="panel-card">
-				<h3><i class="fas fa-search"></i> Selecciona un Servicio</h3>
-				<div class="form-group">
-					<select id="serviceSelect" onchange="loadProfessionals()">
-						<option value="">-- Elige un servicio --</option>
-					</select>
-				</div>
-
-				<div id="professionalsContainer" style="display:none; margin-top: 2rem;">
-					<h3><i class="fas fa-users"></i> Profesionales Disponibles</h3>
-					<div class="professional-list" id="professionalList"></div>
-				</div>
-
-				<div id="bookingFormContainer" style="display:none; margin-top: 2rem;">
-					<h3><i class="fas fa-calendar-check"></i> Selecciona Fecha y Hora</h3>
+				<h3><i class="fas fa-calendar-check"></i> Agendar Nueva Cita</h3>
+				<form th:action="@{/usuario/agendar-cita}" method="post">
 					<div class="form-group">
+						<label>Selecciona un Servicio</label>
+						<select name="servicioId" id="servicioSelect" required
+							onchange="mostrarDetallesServicio(this.value)">
+							<option value="">-- Elige un servicio --</option>
+							<option th:each="servicio : ${servicios}" th:value="${servicio.id}"
+								th:text="${servicio.nombre}" th:attr="data-profesional-id=${servicio.profesional.id},
+													 data-profesional-nombre=${servicio.profesional.usuario.nombre},
+													 data-descripcion=${servicio.descripcion},
+													 data-duracion=${servicio.duracion},
+													 data-precio=${servicio.precio}">
+								Servicio
+							</option>
+						</select>
+					</div>
+
+					<div id="detallesServicio"
+						style="display:none; margin-top: 1.5rem; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+						<h4>Detalles del Servicio</h4>
+						<p><strong>Profesional:</strong> <span id="profesionalNombre"></span></p>
+						<p><strong>Descripción:</strong> <span id="servicioDescripcion"></span></p>
+						<p><strong>Duración:</strong> <span id="servicioDuracion"></span></p>
+						<p><strong>Precio:</strong> $<span id="servicioPrecio"></span></p>
+						<input type="hidden" name="profesionalId" id="profesionalId">
+					</div>
+
+					<div class="form-group" style="margin-top: 1.5rem;">
 						<label>Fecha</label>
-						<input type="date" id="bookingDate" min="">
+						<input type="date" name="fecha" id="bookingDate" required>
 					</div>
+
 					<div class="form-group">
-						<label>Horarios Disponibles</label>
-						<div class="time-slots" id="timeSlots"></div>
+						<label>Hora</label>
+						<select name="hora" id="horaSelect" required>
+							<option value="">-- Selecciona una hora --</option>
+							<option value="09:00">09:00 AM</option>
+							<option value="09:30">09:30 AM</option>
+							<option value="10:00">10:00 AM</option>
+							<option value="10:30">10:30 AM</option>
+							<option value="11:00">11:00 AM</option>
+							<option value="11:30">11:30 AM</option>
+							<option value="12:00">12:00 PM</option>
+							<option value="12:30">12:30 PM</option>
+							<option value="14:00">02:00 PM</option>
+							<option value="14:30">02:30 PM</option>
+							<option value="15:00">03:00 PM</option>
+							<option value="15:30">03:30 PM</option>
+							<option value="16:00">04:00 PM</option>
+							<option value="16:30">04:30 PM</option>
+							<option value="17:00">05:00 PM</option>
+							<option value="17:30">05:30 PM</option>
+							<option value="18:00">06:00 PM</option>
+						</select>
 					</div>
-					<button class="btn btn-primary" onclick="confirmBooking()">Agendar Cita</button>
-				</div>
+
+					<button type="submit" class="btn btn-primary">Agendar Cita</button>
+				</form>
 			</div>
 		</section>
+
 
 		<!-- Profile Section -->
 		<section id="profile" class="section">
@@ -169,7 +233,7 @@
 				<div class="profile-info">
 					<div class="profile-header">
 						<div class="profile-avatar" id="profileAvatar"><i class="fas fa-user"></i></div>
-						<h2 id="profileName" th:text="${nombreUsuario}">Usuario Agendify</h2>
+						<h2 id="profileName" th:text="${nombreUsuario}">Usuario GlowBeauty</h2>
 					</div>
 
 					<form th:action="@{/usuario/actualizar-perfil}" method="post">
@@ -182,11 +246,13 @@
 						</div>
 						<div class="form-group">
 							<label>Email</label>
-							<input type="email" id="profileEmail" name="email" placeholder="tu@email.com" required>
+							<input type="email" name="email" placeholder="tu@email.com" th:value="${emailUsuario}"
+								required>
 						</div>
 						<div class="form-group">
 							<label>Teléfono</label>
-							<input type="tel" id="profilePhone" name="telefono" placeholder="+57 300 123 4567" required>
+							<input type="tel" name="telefono" placeholder="+57 300 123 4567"
+								th:value="${telefonoUsuario}" required>
 						</div>
 						<button type="submit" class="btn btn-primary">Actualizar Perfil</button>
 					</form>
@@ -205,8 +271,32 @@
 				<div class="appointments-list">
 					<h3><i class="fas fa-calendar-alt"></i> Mis Citas Programadas</h3>
 					<div id="userAppointments" style="margin-top: 1rem;">
-						<p id="noCitasMessage" style="text-align: center; color: var(--text-color); opacity: 0.7;">
-							Cargando tus citas...</p>
+						<div th:if="${#lists.isEmpty(citas)}"
+							style="text-align: center; color: var(--text-color); opacity: 0.7;">
+							No tienes citas programadas
+						</div>
+						<div th:each="cita : ${citas}" class="appointment-item">
+							<h4 th:text="${cita.profesional.usuario.nombre}">Profesional</h4>
+							<p><strong>Servicio:</strong> <span th:text="${cita.servicio.nombre}">Servicio</span></p>
+							<p><strong>Fecha:</strong> <span
+									th:text="${#temporals.format(cita.fechaHora, 'dd/MM/yyyy')}">Fecha</span></p>
+							<p><strong>Hora:</strong> <span
+									th:text="${#temporals.format(cita.fechaHora, 'HH:mm')}">Hora</span></p>
+							<p><strong>Estado:</strong>
+								<span th:if="${cita.estado == 'pendiente'}" style="color: #f59e0b;">Pendiente</span>
+								<span th:if="${cita.estado == 'confirmada'}" style="color: #10b981;">Confirmada</span>
+								<span th:if="${cita.estado == 'completada'}" style="color: #6b7280;">Completada</span>
+								<span th:if="${cita.estado == 'cancelada'}" style="color: #ef4444;">Cancelada</span>
+							</p>
+							<div class="appointment-actions"
+								th:if="${cita.estado != 'cancelada' && cita.estado != 'completada'}">
+								<form th:action="@{/usuario/cancelar-cita}" method="post" style="display: inline;"
+									onsubmit="return confirm('¿Estás seguro de cancelar esta cita?');">
+									<input type="hidden" name="citaId" th:value="${cita.id}">
+									<button type="submit" class="btn btn-danger">Cancelar Cita</button>
+								</form>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -215,7 +305,7 @@
 	<!-- Footer -->
 	<footer>
 		<div class="footer-content">
-			<div class="logo" style="font-size: 2rem; margin-bottom: 1rem;"><i class="fas fa-scissors"></i> Agendify
+			<div class="logo" style="font-size: 2rem; margin-bottom: 1rem;"><i class="fas fa-scissors"></i> GlowBeauty
 				Beauty</div>
 			<p>Tu belleza es nuestra prioridad</p>
 
@@ -252,7 +342,7 @@
 					<div class="contact-info">
 						<p><i class="fas fa-map-marker-alt"></i> Fusagasugá, Cundinamarca</p>
 						<p><i class="fas fa-phone"></i> +57 300 123 4567</p>
-						<p><i class="fas fa-envelope"></i> info@agendifybeauty.com</p>
+						<p><i class="fas fa-envelope"></i> info@GlowBeauty.com</p>
 						<p><i class="fas fa-clock"></i> Lun-Sab: 9AM-7PM</p>
 					</div>
 				</div>
@@ -268,225 +358,11 @@
 
 			<p
 				style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem;">
-				&copy; 2025 Agendify Beauty. Todos los derechos reservados. | Hecho con 💕 para ti
+				&copy; 2025 GlowBeauty. Todos los derechos reservados. | Hecho con 💕 para ti
 			</p>
 		</div>
 	</footer>
 	<script th:src="@{/js/scripsUsuario.js}"></script>
-	<script th:inline="javascript">
-		const usuarioId = /*[[${usuarioId}]]*/ null;
-
-		// Cargar servicios desde el servidor
-		async function loadServices() {
-			try {
-				const response = await fetch('/usuario/servicios');
-				const servicios = await response.json();
-
-				const serviceSelect = document.getElementById('serviceSelect');
-				const allServicesContainer = document.getElementById('allServices');
-				const featuredServicesContainer = document.getElementById('featuredServices');
-
-				serviceSelect.innerHTML = '<option value="">-- Elige un servicio --</option>';
-				allServicesContainer.innerHTML = '';
-				if (featuredServicesContainer) featuredServicesContainer.innerHTML = '';
-
-				servicios.forEach(servicio => {
-					const option = document.createElement('option');
-					option.value = servicio.id;
-					option.textContent = servicio.nombre;
-					serviceSelect.appendChild(option);
-
-					const card = createServiceCard(servicio);
-					allServicesContainer.appendChild(card);
-					if (featuredServicesContainer && servicios.indexOf(servicio) < 3) {
-						featuredServicesContainer.appendChild(card.cloneNode(true));
-					}
-				});
-			} catch (error) {
-				console.error('Error cargando servicios:', error);
-			}
-		}
-
-		function createServiceCard(servicio) {
-			const card = document.createElement('div');
-			card.className = 'service-card';
-			card.innerHTML = `
-					                <div class="service-image">💇‍♀️</div>
-					                <h3>${servicio.nombre}</h3>
-					                <div class="service-price">$${servicio.precio.toLocaleString()}</div>
-					                <p>${servicio.descripcion}</p>
-					                <p><strong>Duración:</strong> ${servicio.duracion}</p>
-					            `;
-			card.addEventListener('click', function () {
-				document.getElementById('serviceSelect').value = servicio.id;
-				loadProfessionals();
-				showSection('booking');
-			});
-			return card;
-		}
-
-		async function loadProfessionals() {
-			const serviceId = document.getElementById('serviceSelect').value;
-			if (!serviceId) {
-				document.getElementById('professionalsContainer').style.display = 'none';
-				document.getElementById('bookingFormContainer').style.display = 'none';
-				return;
-			}
-
-			try {
-				const response = await fetch(`/usuario/profesionales/${serviceId}`);
-				const profesionales = await response.json();
-
-				const container = document.getElementById('professionalList');
-				container.innerHTML = '';
-
-				profesionales.forEach(prof => {
-					const div = document.createElement('div');
-					div.className = 'professional-item';
-					div.innerHTML = `
-					                        <div class="professional-info">
-					                            <h4>${prof.usuario.nombre}</h4>
-					                            <p>${prof.especialidad}</p>
-					                        </div>
-					                        <button class="btn btn-primary" onclick="selectProfessional(${prof.id}, '${prof.usuario.nombre}', ${serviceId})">Seleccionar</button>
-					                    `;
-					container.appendChild(div);
-				});
-
-				document.getElementById('professionalsContainer').style.display = 'block';
-			} catch (error) {
-				console.error('Error cargando profesionales:', error);
-			}
-		}
-
-		let selectedProfessional = null;
-		let selectedService = null;
-		let selectedTime = null;
-
-		function selectProfessional(profId, name, serviceId) {
-			selectedProfessional = {id: profId, name: name};
-			selectedService = serviceId;
-
-			document.getElementById('bookingFormContainer').style.display = 'block';
-
-			const today = new Date().toISOString().split('T')[0];
-			document.getElementById('bookingDate').min = today;
-			document.getElementById('bookingDate').value = today;
-
-			loadTimeSlots(today);
-			document.getElementById('bookingFormContainer').scrollIntoView({behavior: 'smooth'});
-		}
-
-		function loadTimeSlots(date) {
-			const times = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
-			const container = document.getElementById('timeSlots');
-			container.innerHTML = '';
-
-			times.forEach(time => {
-				const slot = document.createElement('div');
-				slot.className = 'time-slot';
-				slot.textContent = time;
-				slot.onclick = function () {
-					document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-					this.classList.add('selected');
-					selectedTime = this.textContent;
-				};
-				container.appendChild(slot);
-			});
-		}
-
-		async function confirmBooking() {
-			const fecha = document.getElementById('bookingDate').value;
-
-			if (!fecha || !selectedTime) {
-				showAlert('Por favor selecciona fecha y hora', 'error');
-				return;
-			}
-
-			try {
-				const formData = new URLSearchParams();
-				formData.append('servicioId', selectedService);
-				formData.append('profesionalId', selectedProfessional.id);
-				formData.append('fecha', fecha);
-				formData.append('hora', selectedTime);
-
-				const response = await fetch('/usuario/agendar-cita', {
-					method: 'POST',
-					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-					body: formData
-				});
-
-				const result = await response.text();
-				if (result === 'success') {
-					showAlert(`¡Tu cita ha sido agendada con ${selectedProfessional.name} para el ${fecha} a las ${selectedTime}!`, 'success');
-					document.getElementById('bookingFormContainer').style.display = 'none';
-					document.getElementById('serviceSelect').value = '';
-					document.getElementById('professionalsContainer').style.display = 'none';
-					selectedProfessional = null;
-					selectedService = null;
-					selectedTime = null;
-					loadUserAppointments();
-				} else {
-					showAlert('Error al agendar cita', 'error');
-				}
-			} catch (error) {
-				console.error('Error:', error);
-				showAlert('Error al agendar cita', 'error');
-			}
-		}
-
-		async function loadUserAppointments() {
-			try {
-				const response = await fetch('/usuario/mis-citas');
-				const citas = await response.json();
-
-				const container = document.getElementById('userAppointments');
-				const noCitasMessage = document.getElementById('noCitasMessage');
-
-				if (!citas || citas.length === 0) {
-					noCitasMessage.textContent = "No tienes citas programadas";
-					return;
-				}
-
-				noCitasMessage.style.display = 'none';
-				container.innerHTML = '';
-
-				citas.forEach(cita => {
-					const div = document.createElement('div');
-					div.className = 'appointment-item';
-
-					const fecha = new Date(cita.fechaHora);
-					const fechaFormato = fecha.toLocaleDateString();
-					const horaFormato = fecha.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-
-					let statusText = cita.estado === 'pendiente' ? 'Pendiente' :
-						cita.estado === 'confirmada' ? 'Confirmada' : 'Completada';
-					let statusClass = `status-${cita.estado}`;
-
-					div.innerHTML = `
-					                        <h4>${cita.servicio.nombre}</h4>
-					                        <p><strong>Profesional:</strong> ${cita.profesional.usuario.nombre}</p>
-					                        <p><strong>Descripción:</strong> ${cita.servicio.descripcion}</p>
-					                        <p><strong>Fecha:</strong> ${fechaFormato}</p>
-					                        <p><strong>Hora:</strong> ${horaFormato}</p>
-					                        <span class="appointment-status ${statusClass}">${statusText}</span>
-					                    `;
-					container.appendChild(div);
-				});
-			} catch (error) {
-				console.error('Error cargando citas:', error);
-			}
-		}
-
-		document.addEventListener('DOMContentLoaded', function () {
-			loadServices();
-			loadUserAppointments();
-
-			document.getElementById('bookingDate').addEventListener('change', function (e) {
-				loadTimeSlots(e.target.value);
-			});
-		});
-	</script>
 </body>
 
 </html>

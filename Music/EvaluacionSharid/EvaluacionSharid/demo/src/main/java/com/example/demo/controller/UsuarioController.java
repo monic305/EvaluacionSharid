@@ -51,8 +51,28 @@ public class UsuarioController {
 			return "redirect:/";
 		}
 
-		model.addAttribute("usuarioId", usuarioId);
-		model.addAttribute("nombreUsuario", nombreUsuario);
+		try {
+			Usuario usuario = usuarioService.buscarPorId(usuarioId);
+
+			// Obtener todos los servicios para mostrar en la vista
+			List<Servicio> servicios = servicioService.findAll();
+			System.out.println("Servicios encontrados: " + servicios.size());
+
+			// Obtener las citas del usuario
+			List<Cita> citas = citaRepository.findByUsuarioIdOrderByFechaHoraDesc(usuarioId);
+			System.out.println("Citas encontradas: " + citas.size());
+
+			model.addAttribute("usuarioId", usuario.getId());
+			model.addAttribute("nombreUsuario", usuario.getNombre());
+			model.addAttribute("emailUsuario", usuario.getEmail());
+			model.addAttribute("telefonoUsuario", usuario.getTelefono());
+			model.addAttribute("servicios", servicios != null ? servicios : List.of());
+			model.addAttribute("citas", citas != null ? citas : List.of());
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("servicios", List.of());
+			model.addAttribute("citas", List.of());
+		}
 
 		return "usuario";
 	}
@@ -77,7 +97,7 @@ public class UsuarioController {
 
 		usuarioService.save(usuario);
 
-		// Actualizar sesión
+		// actualizar sesión
 		session.setAttribute("nombreUsuario", nombre);
 
 		redirectAttributes.addFlashAttribute("success", "Perfil actualizado exitosamente");
@@ -96,54 +116,42 @@ public class UsuarioController {
 		return "redirect:/";
 	}
 
-	// Listar servicios (AJAX)
+	// Listar servicios
 	@GetMapping("/servicios")
 	@ResponseBody
 	public List<Servicio> listarServicios() {
 		return servicioService.findAll();
 	}
 
-	// Listar profesionales por servicio (AJAX)
-	@GetMapping("/profesionales/{servicioId}")
+	// Listar profesionales
+	@GetMapping("/profesionales")
 	@ResponseBody
-	public List<Profesional> listarProfesionales(@PathVariable Integer servicioId) {
+	public List<Profesional> listarProfesionales() {
 		return profesionalService.findAll();
 	}
 
-	// Agendar cita
-	@PostMapping("/agendar-cita")
+	// Listar profesionales por servicio
+	@GetMapping("/profesionales/{servicioId}")
 	@ResponseBody
-	public String agendarCita(@RequestParam("servicioId") Integer servicioId,
-			@RequestParam("profesionalId") Integer profesionalId, @RequestParam("fecha") String fecha,
-			@RequestParam("hora") String hora, HttpSession session) {
-
-		Integer usuarioId = (Integer) session.getAttribute("usuarioId");
-
-		if (usuarioId == null) {
-			return "error";
-		}
-
-		Optional<Usuario> usuarioOpt = usuarioService.findById(usuarioId);
+	public List<Profesional> listarProfesionalesPorServicio(@PathVariable Integer servicioId) {
 		Optional<Servicio> servicioOpt = servicioService.findById(servicioId);
-		Optional<Profesional> profesionalOpt = profesionalService.findById(profesionalId);
-
-		if (usuarioOpt.isEmpty() || servicioOpt.isEmpty() || profesionalOpt.isEmpty()) {
-			return "error";
+		if (servicioOpt.isPresent()) {
+			Servicio servicio = servicioOpt.get();
+			Profesional profesional = servicio.getProfesional();
+			return List.of(profesional);
 		}
-
-		Cita cita = new Cita();
-		cita.setUsuario(usuarioOpt.get());
-		cita.setServicio(servicioOpt.get());
-		cita.setProfesional(profesionalOpt.get());
-		cita.setFechaHora(LocalDateTime.parse(fecha + "T" + hora));
-		cita.setEstado("pendiente");
-
-		citaService.save(cita);
-
-		return "success";
+		return List.of();
 	}
 
-	// Listar citas del usuario (AJAX)
+	// Obtener detalles de un servicio específico
+	@GetMapping("/servicio/{servicioId}")
+	@ResponseBody
+	public Servicio obtenerServicio(@PathVariable Integer servicioId) {
+		Optional<Servicio> servicioOpt = servicioService.findById(servicioId);
+		return servicioOpt.orElse(null);
+	}
+
+	// Listar citas del usuario
 	@GetMapping("/mis-citas")
 	@ResponseBody
 	public List<Cita> listarCitas(HttpSession session) {
@@ -151,6 +159,97 @@ public class UsuarioController {
 		if (usuarioId == null) {
 			return null;
 		}
-		return citaRepository.findByUsuarioId(usuarioId);
+		return citaRepository.findByUsuarioIdOrderByFechaHoraDesc(usuarioId);
 	}
+
+	@GetMapping("/citas")
+	@ResponseBody
+	public List<Cita> listarMisCitas(HttpSession session) {
+		Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+		if (usuarioId == null) {
+			return null;
+		}
+		return citaRepository.findByUsuarioIdOrderByFechaHoraDesc(usuarioId);
+	}
+
+	// Agendar cita
+	@PostMapping("/agendar-cita")
+	public String agendarCita(@RequestParam("servicioId") Integer servicioId,
+			@RequestParam("profesionalId") Integer profesionalId, @RequestParam("fecha") String fecha,
+			@RequestParam("hora") String hora, HttpSession session, RedirectAttributes redirectAttributes) {
+
+		try {
+			Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+
+			if (usuarioId == null) {
+				redirectAttributes.addFlashAttribute("error", "Sesión expirada");
+				return "redirect:/";
+			}
+
+			Optional<Usuario> usuarioOpt = usuarioService.findById(usuarioId);
+			Optional<Servicio> servicioOpt = servicioService.findById(servicioId);
+			Optional<Profesional> profesionalOpt = profesionalService.findById(profesionalId);
+
+			if (usuarioOpt.isEmpty() || servicioOpt.isEmpty() || profesionalOpt.isEmpty()) {
+				redirectAttributes.addFlashAttribute("error", "Datos inválidos");
+				return "redirect:/usuario/home";
+			}
+
+			Cita cita = new Cita();
+			cita.setUsuario(usuarioOpt.get());
+			cita.setServicio(servicioOpt.get());
+			cita.setProfesional(profesionalOpt.get());
+			cita.setFechaHora(LocalDateTime.parse(fecha + "T" + hora));
+			cita.setEstado("pendiente");
+
+			citaService.save(cita);
+
+			redirectAttributes.addFlashAttribute("success", "Cita agendada exitosamente");
+			return "redirect:/usuario/home";
+		} catch (Exception e) {
+			e.printStackTrace();
+			redirectAttributes.addFlashAttribute("error", "Error al agendar la cita");
+			return "redirect:/usuario/home";
+		}
+	}
+
+	// Cancelar cita desde el usuario
+	// Cancelar cita desde el usuario - ACTUALIZADO
+	@PostMapping("/cancelar-cita")
+	public String cancelarCita(@RequestParam("citaId") Integer citaId, HttpSession session,
+			RedirectAttributes redirectAttributes) {
+		try {
+			Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+
+			if (usuarioId == null) {
+				redirectAttributes.addFlashAttribute("error", "Sesión expirada");
+				return "redirect:/";
+			}
+
+			Optional<Cita> citaOpt = citaService.findById(citaId);
+
+			if (citaOpt.isEmpty()) {
+				redirectAttributes.addFlashAttribute("error", "Cita no encontrada");
+				return "redirect:/usuario/home";
+			}
+
+			Cita cita = citaOpt.get();
+
+			if (!cita.getUsuario().getId().equals(usuarioId)) {
+				redirectAttributes.addFlashAttribute("error", "No tienes permiso para cancelar esta cita");
+				return "redirect:/usuario/home";
+			}
+
+			cita.setEstado("cancelada");
+			citaService.save(cita);
+
+			redirectAttributes.addFlashAttribute("success", "Cita cancelada exitosamente");
+			return "redirect:/usuario/home";
+		} catch (Exception e) {
+			e.printStackTrace();
+			redirectAttributes.addFlashAttribute("error", "Error al cancelar la cita");
+			return "redirect:/usuario/home";
+		}
+	}
+
 }

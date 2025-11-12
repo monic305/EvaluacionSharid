@@ -23,6 +23,11 @@ public class ProfesionalServiceImplement implements ProfesionalService {
 	public Optional<Profesional> findById(Integer id) {
 		return profesionalRepository.findById(id);
 	}
+	
+	@Override
+	public Profesional buscarPorId(Integer id) {
+	    return profesionalRepository.findById(id).orElse(null);
+	}
 
 	@Override
 	public Profesional save(Profesional profesional) {
@@ -31,16 +36,15 @@ public class ProfesionalServiceImplement implements ProfesionalService {
 
 	@Override
 	public void delete(Integer id) {
-		// Buscar primero el profesional en la base de datos
+		//buscar primero el profesional en la base de datos
 		Profesional profesional = profesionalRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Profesional no encontrado con id: " + id));
 
-		// 💡 Desvincular el usuario antes de eliminar (esto evita el error
-		// TransientObjectException)
+		// desvincular el usuario antes de eliminar 
 		profesional.setUsuario(null);
 		profesionalRepository.save(profesional);
 
-		// Ahora sí, eliminar el profesional
+		//eliminar el profesional
 		profesionalRepository.deleteById(id);
 	}
 }

@@ -25,6 +25,11 @@ public class ServicioServiceImplement implements ServicioService {
 	}
 
 	@Override
+	public List<Servicio> findByProfesionalId(Integer profesionalId) {
+		return serviciorepository.findByProfesionalId(profesionalId);
+	}
+
+	@Override
 	public Servicio save(Servicio servicio) {
 		return serviciorepository.save(servicio);
 	}

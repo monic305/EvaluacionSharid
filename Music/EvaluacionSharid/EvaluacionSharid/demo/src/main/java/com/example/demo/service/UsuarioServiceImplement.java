@@ -14,29 +14,33 @@ import java.util.Optional;
 public class UsuarioServiceImplement implements UsuarioService {
 
     @Autowired
-    private UsuarioRepository usuariorepository;
+    private UsuarioRepository usuarioRepository;
 
     @Override
     public List<Usuario> findAll() {
-        return usuariorepository.findAll();
+        return usuarioRepository.findAll();
     }
 
     @Override
     public Optional<Usuario> findById(Integer id) {
-        return usuariorepository.findById(id);
+        return usuarioRepository.findById(id);
     }
 
     @Override
     public Usuario save(Usuario usuario) {
-        // Si es nuevo usuario, asigna fecha de registro
         if (usuario.getId() == null) {
             usuario.setFechaRegistro(LocalDateTime.now());
         }
-        return usuariorepository.save(usuario);
+        return usuarioRepository.save(usuario);
     }
 
     @Override
     public void delete(Integer id) {
-        usuariorepository.deleteById(id);
+        usuarioRepository.deleteById(id);
+    }
+
+	@Override
+	public Usuario buscarPorId(Integer usuarioId) {
+		return usuarioRepository.findById(usuarioId).orElse(null);
     }
 }
