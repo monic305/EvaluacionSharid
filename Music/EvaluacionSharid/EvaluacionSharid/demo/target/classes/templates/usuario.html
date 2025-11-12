@@ -131,7 +131,11 @@
 					<div class="service-icon"><i class="fas fa-cut"></i></div>
 					<h3 th:text="${servicio.nombre}">Servicio</h3>
 					<p th:text="${servicio.descripcion}">Descripción</p>
-					<div class="service-price">$<span th:text="${servicio.precio}">0</span></div>
+					<div class="service-price"
+						th:text="'COP $' + ${#numbers.formatDecimal(servicio.precio, 0, 'COMMA', 2, 'POINT')}">
+						COP $0,00
+					</div>
+
 					<div class="service-duration"><i class="fas fa-clock"></i> <span th:text="${servicio.duracion}">0
 							min</span></div>
 					<button class="btn btn-primary" onclick="showSection('booking')">Reservar</button>
@@ -147,7 +151,10 @@
 					<div class="service-icon"><i class="fas fa-cut"></i></div>
 					<h3 th:text="${servicio.nombre}">Servicio</h3>
 					<p th:text="${servicio.descripcion}">Descripción</p>
-					<div class="service-price">$<span th:text="${servicio.precio}">0</span></div>
+					<div class="service-price"
+						th:text="'COP $' + ${#numbers.formatDecimal(servicio.precio, 0, 'COMMA', 2, 'POINT')}">
+						COP $0,00
+					</div>
 					<div class="service-duration"><i class="fas fa-clock"></i> <span th:text="${servicio.duracion}">0
 							min</span></div>
 					<div class="service-professional">
@@ -187,7 +194,7 @@
 						<p><strong>Profesional:</strong> <span id="profesionalNombre"></span></p>
 						<p><strong>Descripción:</strong> <span id="servicioDescripcion"></span></p>
 						<p><strong>Duración:</strong> <span id="servicioDuracion"></span></p>
-						<p><strong>Precio:</strong> $<span id="servicioPrecio"></span></p>
+						<p><strong>Precio:</strong> COP $<span id="servicioPrecio"></span></p>
 						<input type="hidden" name="profesionalId" id="profesionalId">
 					</div>
 

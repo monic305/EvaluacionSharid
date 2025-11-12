@@ -263,8 +263,14 @@
 							<div class="service-info">
 								<h4 th:text="${servicio.nombre}">Servicio</h4>
 								<p th:text="${servicio.descripcion}">Descripción</p>
-								<p><strong>Precio:</strong> $<span th:text="${servicio.precio}">0</span> |
-									<strong>Duración:</strong> <span th:text="${servicio.duracion}">0 min</span>
+								<p> <strong>Precio:</strong>
+									<span class="service-price"
+										th:text="'COP $' + ${#numbers.formatDecimal(servicio.precio, 0, 'POINT', 0, 'COMMA')}">
+										COP $0
+									</span>
+									|
+									<strong>Duración:</strong>
+									<span th:text="${servicio.duracion}">0 min</span>
 								</p>
 							</div>
 							<div class="service-actions">
