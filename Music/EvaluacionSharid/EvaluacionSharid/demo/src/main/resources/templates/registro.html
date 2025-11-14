@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Registro - GlowBeauty</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="stylesheet" th:href="@{/css/stylesRegis.css}">
+</head>
+
+<body>
+	<div class="register-container">
+		<div class="logo">
+			<i class="fas fa-scissors"></i>
+			<h1>GlowBeauty</h1>
+		</div>
+
+		<h2 class="form-title"><i class="fas fa-user-plus"></i> Crear Cuenta</h2>
+
+		<!-- Mensajes de alerta -->
+		<div th:if="${error}" class="alert alert-error show">
+			<i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
+		</div>
+
+		<div th:if="${success}" class="alert alert-success show">
+			<i class="fas fa-check-circle"></i> <span th:text="${success}">Éxito</span>
+		</div>
+
+		<!-- CORRECCIÓN AQUÍ: usar action sin th: -->
+		<form action="/registro" method="post" id="registerForm">
+			<!-- Selector de tipo de usuario -->
+			<div class="user-type-selector">
+				<div class="user-type-btn active" onclick="selectUserType('usuario')">
+					<i class="fas fa-user"></i>
+					<div>Cliente</div>
+				</div>
+				<div class="user-type-btn" onclick="selectUserType('profesional')">
+					<i class="fas fa-scissors"></i>
+					<div>Profesional</div>
+				</div>
+			</div>
+			<input type="hidden" id="userType" name="userType" value="usuario">
+
+			<!-- Campos comunes -->
+			<div class="form-group">
+				<label for="nombre">
+					<i class="fas fa-user"></i> Nombre Completo
+				</label>
+				<input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
+			</div>
+
+			<div class="form-group">
+				<label for="email">
+					<i class="fas fa-envelope"></i> Correo Electrónico
+				</label>
+				<input type="email" id="email" name="email" required placeholder="tu@email.com">
+			</div>
+
+			<div class="form-group">
+				<label for="telefono">
+					<i class="fas fa-phone"></i> Teléfono
+				</label>
+				<input type="tel" id="telefono" name="telefono" required placeholder="+57 300 123 4567">
+			</div>
+
+			<div class="form-group">
+				<label for="password">
+					<i class="fas fa-lock"></i> Contraseña
+				</label>
+				<input type="password" id="password" name="password" required placeholder="Tu contraseña">
+			</div>
+
+			<div class="form-group">
+				<label for="confirmPassword">
+					<i class="fas fa-lock"></i> Confirmar Contraseña
+				</label>
+				<input type="password" id="confirmPassword" required placeholder="Repite tu contraseña">
+			</div>
+
+			<!-- Campos adicionales para profesional -->
+			<div id="professionalFields" style="display: none;">
+				<h4 style="color: #aa96da; margin-bottom: 1rem;">
+					<i class="fas fa-briefcase"></i> Información Profesional
+				</h4>
+				<div class="form-group">
+					<label for="especialidad">
+						<i class="fas fa-star"></i> Especialidad
+					</label>
+					<input type="text" id="especialidad" name="especialidad"
+						placeholder="Ej: Estilista, Colorista, Manicurista">
+				</div>
+			</div>
+
+			<!-- Términos y condiciones -->
+			<div class="checkbox-group">
+				<input type="checkbox" id="termsCheckbox">
+				<label for="termsCheckbox">
+					Acepto los <a href="#" onclick="openModal(event)">Términos y Condiciones</a>
+				</label>
+			</div>
+
+			<button type="submit" class="btn-submit" id="registerBtn">
+				<i class="fas fa-user-plus"></i> Registrarse
+			</button>
+		</form>
+
+		<!-- Modal de Términos y Condiciones -->
+		<div id="termsModal" class="modal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 class="modal-title">
+						<i class="fas fa-file-contract"></i> Términos y Condiciones
+					</h2>
+					<button class="modal-close" onclick="closeModal()">&times;</button>
+				</div>
+				<div class="modal-body">
+					<div class="terms-content">
+						<h3>1. Aceptación de Términos</h3>
+						<p>Al registrarse en GlowBeauty, usted acepta cumplir con estos términos y condiciones.</p>
+
+						<h3>2. Uso del Servicio</h3>
+						<p>Usted se compromete a proporcionar información precisa y mantener la seguridad de su cuenta.
+						</p>
+
+						<h3>3. Privacidad</h3>
+						<p>Sus datos serán protegidos según nuestra política de privacidad.</p>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn-close-modal" onclick="closeModal()">
+						<i class="fas fa-times"></i> Cerrar
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="form-footer">
+			¿Ya tienes cuenta? <a th:href="@{/login}">Inicia sesión aquí</a>
+		</div>
+
+		<div class="back-home">
+			<a th:href="@{/}">
+				<i class="fas fa-arrow-left"></i> Volver al inicio
+			</a>
+		</div>
+	</div>
+
+	
+	<script>
+		// Funciones del modal
+		function openModal(event) {
+			event.preventDefault();
+			document.getElementById('termsModal').classList.add('show');
+			document.body.style.overflow = 'hidden';
+		}
+
+		function closeModal() {
+			document.getElementById('termsModal').classList.remove('show');
+			document.body.style.overflow = 'auto';
+		}
+
+		window.onclick = function (event) {
+			const modal = document.getElementById('termsModal');
+			if (event.target === modal) {
+				closeModal();
+			}
+		}
+
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape') {
+				closeModal();
+			}
+		});
+
+		// Mostrar/ocultar campos de profesional
+		function selectUserType(type) {
+			document.querySelectorAll('.user-type-btn').forEach(btn => {
+				btn.classList.remove('active');
+			});
+			event.target.closest('.user-type-btn').classList.add('active');
+			document.getElementById('userType').value = type;
+
+			const professionalFields = document.getElementById('professionalFields');
+			if (type === 'profesional') {
+				professionalFields.style.display = 'block';
+				document.getElementById('especialidad').setAttribute('required', 'required');
+			} else {
+				professionalFields.style.display = 'none';
+				document.getElementById('especialidad').removeAttribute('required');
+			}
+		}
+
+		// Validar contraseñas y checkbox
+		document.getElementById('registerForm').addEventListener('submit', function (e) {
+			const password = document.getElementById('password').value;
+			const confirmPassword = document.getElementById('confirmPassword').value;
+			const termsCheckbox = document.getElementById('termsCheckbox');
+
+			if (password !== confirmPassword) {
+				e.preventDefault();
+				alert('Las contraseñas no coinciden');
+				return;
+			}
+
+			if (!termsCheckbox.checked) {
+				e.preventDefault();
+				alert('Debes aceptar los términos y condiciones para continuar');
+				return;
+			}
+		});
+	</script>
+</body>
+
+</html>

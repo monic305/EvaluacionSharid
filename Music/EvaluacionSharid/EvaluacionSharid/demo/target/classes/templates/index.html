@@ -39,123 +39,16 @@
 					</button>
 				</li>
 				<li class="auth-buttons">
-					<button class="btn-login" onclick="openModal('loginModal')">Iniciar Sesión</button>
-					<button class="btn-register" onclick="openModal('registerModal')">Registrarse</button>
+					<a th:href="@{/login}"><button class="btn-login">Iniciar Sesión</button></a>
+					<a th:href="@{/registro}"><button class="btn-register">Registrarse</button></a>
 				</li>
 			</ul>
 		</div>
 	</nav>
 
-	<!-- Login Modal -->
-	<div id="loginModal" class="modal">
-		<div class="modal-content">
-			<span class="modal-close" onclick="closeModal('loginModal')">&times;</span>
-			<h2 class="modal-title"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h2>
-			<form th:action="@{/login}" method="post">
-				<div class="form-group">
-					<label for="loginEmail"><i class="fas fa-envelope"></i> Correo Electrónico</label>
-					<input type="email" id="loginEmail" name="loginEmail" required placeholder="tu@email.com">
-				</div>
-				<div class="form-group">
-					<label for="loginPassword"><i class="fas fa-lock"></i> Contraseña</label>
-					<input type="password" id="loginPassword" name="loginPassword" required placeholder="••••••••">
-				</div>
-				<button type="submit" class="btn-submit">
-					<i class="fas fa-sign-in-alt"></i> Ingresar
-				</button>
-				<div class="modal-footer">
-					¿No tienes cuenta? <a onclick="closeModal('loginModal'); openModal('registerModal')">Regístrate
-						aquí</a>
-				</div>
-			</form>
-		</div>
-	</div>
+	
 
-	<!-- Register Modal -->
-	<div id="registerModal" class="modal">
-		<div class="modal-content">
-			<span class="modal-close" onclick="closeModal('registerModal')">&times;</span>
-			<h2 class="modal-title"><i class="fas fa-user-plus"></i> Crear Cuenta</h2>
-			<form th:action="@{/registro}" method="post" id="registerForm">
-				<div class="form-group">
-					<label>Tipo de Usuario</label>
-					<div class="user-type-selector">
-						<div class="user-type-btn active" onclick="selectUserType('client')">
-							<i class="fas fa-user"></i>
-							<div>Cliente</div>
-						</div>
-						<div class="user-type-btn" onclick="selectUserType('professional')">
-							<i class="fas fa-scissors"></i>
-							<div>Profesional</div>
-						</div>
-					</div>
-					<input type="hidden" id="userType" name="userType" value="client">
-				</div>
-				<div class="form-group">
-					<label for="registerName"><i class="fas fa-user"></i> Nombre Completo</label>
-					<input type="text" id="registerName" name="registerName" required placeholder="Tu nombre completo">
-				</div>
-				<div class="form-group">
-					<label for="registerEmail"><i class="fas fa-envelope"></i> Correo Electrónico</label>
-					<input type="email" id="registerEmail" name="registerEmail" required placeholder="tu@email.com">
-				</div>
-				<div class="form-group">
-					<label for="registerPhone"><i class="fas fa-phone"></i> Teléfono</label>
-					<input type="tel" id="registerPhone" name="registerPhone" required placeholder="+57 300 123 4567">
-				</div>
-				<div class="form-group">
-					<label for="registerPassword"><i class="fas fa-lock"></i> Contraseña</label>
-					<input type="password" id="registerPassword" name="registerPassword" required
-						placeholder="Tu contraseña">
-				</div>
-				<div class="form-group">
-					<label for="registerConfirmPassword"><i class="fas fa-lock"></i> Confirmar Contraseña</label>
-					<input type="password" id="registerConfirmPassword" required placeholder="Repite tu contraseña">
-				</div>
-
-				<!-- Campos adicionales para profesional -->
-				<div id="professionalFields" style="display:none;">
-					<div class="form-group">
-						<label for="especialidad"><i class="fas fa-briefcase"></i> Especialidad</label>
-						<input type="text" id="especialidad" name="especialidad"
-							placeholder="Ej: Coloración, Cortes, etc.">
-					</div>
-					<div class="form-group">
-						<label for="horarioDisponible"><i class="fas fa-clock"></i> Horario Disponible</label>
-						<input type="datetime-local" id="horarioDisponible" name="horarioDisponible">
-					</div>
-				</div>
-
-				<div class="checkbox-group">
-					<input type="checkbox" id="termsCheckbox" required>
-					<label for="termsCheckbox">
-						Acepto los <a onclick="openModal('termsModal')">Términos y Condiciones</a> y la Política de
-						Privacidad
-					</label>
-				</div>
-				<button type="submit" class="btn-submit" id="registerBtn" disabled>
-					<i class="fas fa-user-plus"></i> Registrarse
-				</button>
-				<div class="modal-footer">
-					¿Ya tienes cuenta? <a onclick="closeModal('registerModal'); openModal('loginModal')">Inicia sesión
-						aquí</a>
-				</div>
-			</form>
-		</div>
-	</div>
-
-	<!-- Terms and Conditions Modal -->
-	<div id="termsModal" class="modal">
-		<div class="modal-content">
-			<span class="modal-close" onclick="closeModal('termsModal')">&times;</span>
-			<h2 class="modal-title"><i class="fas fa-file-contract"></i> Términos y Condiciones</h2>
-			<div class="terms-content">
-				<h3>1. Aceptación de Términos</h3>
-				<p>Al registrarse en GlowBeauty, usted acepta cumplir con estos términos y condiciones.</p>
-				<!-- Resto del contenido de términos igual -->
-			</div>
-		</div>
-	</div>
+	
 
 	<!-- HOME PAGE -->
 	<div id="home" class="page active">
@@ -494,36 +387,7 @@
 		</div>
 	</footer>
 	<script th:src="@{/js/scripsInicio.js}"></script>
-	<script>
-		// Mostrar/ocultar campos de profesional
-		function selectUserType(type) {
-			document.querySelectorAll('.user-type-btn').forEach(btn => {
-				btn.classList.remove('active');
-			});
-			event.target.closest('.user-type-btn').classList.add('active');
-			document.getElementById('userType').value = type;
-
-			const professionalFields = document.getElementById('professionalFields');
-			if (type === 'professional') {
-				professionalFields.style.display = 'block';
-				document.getElementById('especialidad').setAttribute('required', 'required');
-			} else {
-				professionalFields.style.display = 'none';
-				document.getElementById('especialidad').removeAttribute('required');
-			}
-		}
-
-		// Validar contraseñas
-		document.getElementById('registerForm').addEventListener('submit', function (e) {
-			const password = document.getElementById('registerPassword').value;
-			const confirmPassword = document.getElementById('registerConfirmPassword').value;
-
-			if (password !== confirmPassword) {
-				e.preventDefault();
-				alert('Las contraseñas no coinciden');
-			}
-		});
-	</script>
+	
 </body>
 
 </html>

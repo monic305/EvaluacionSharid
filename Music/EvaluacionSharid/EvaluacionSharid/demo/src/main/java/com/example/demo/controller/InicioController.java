@@ -34,64 +34,77 @@ public class InicioController {
 		return "index";
 	}
 
-	// Registro de usuario/profesional
-	@PostMapping("/registro")
-	public String registro(@RequestParam("userType") String userType, @RequestParam("registerName") String nombre,
-			@RequestParam("registerEmail") String email, @RequestParam("registerPhone") String telefono,
-			@RequestParam("registerPassword") String password,
-			@RequestParam(value = "especialidad", required = false) String especialidad,
-			@RequestParam(value = "horarioDisponible", required = false) String horarioDisponible,
-			RedirectAttributes redirectAttributes) {
-
-		// Verificar si el email ya existe
-		Optional<Usuario> usuarioExistente = usuarioRepository.findByEmail(email);
-		if (usuarioExistente.isPresent()) {
-			redirectAttributes.addFlashAttribute("error", "El email ya está registrado");
-			return "redirect:/";
-		}
-
-		// Crear usuario
-		Usuario usuario = new Usuario();
-		usuario.setNombre(nombre);
-		usuario.setEmail(email);
-		usuario.setTelefono(telefono);
-		usuario.setPassword(password);
-		usuario.setFechaRegistro(LocalDateTime.now());
-
-		Usuario usuarioGuardado = usuarioService.save(usuario);
-
-		// Si es profesional, crear registro en tabla profesional
-		if ("professional".equals(userType)) {
-			Profesional profesional = new Profesional();
-			profesional.setEspecialidad(especialidad);
-			if (horarioDisponible != null && !horarioDisponible.isEmpty()) {
-				profesional.setHorarioDisponible(LocalDateTime.parse(horarioDisponible));
-			}
-			profesional.setUsuario(usuarioGuardado);
-			profesionalService.save(profesional);
-		}
-
-		redirectAttributes.addFlashAttribute("success", "Registro exitoso. Por favor inicia sesión");
-		return "redirect:/";
+	// Mostrar página de login
+	@GetMapping("/login")
+	public String mostrarLogin() {
+		return "login";
 	}
 
-	// Login
+	// Mostrar página de registro
+	@GetMapping("/registro")
+	public String mostrarRegistro() {
+		return "registro";
+	}
+
+	// Registro de usuario/profesional
+	@PostMapping("/registro")
+	public String registro(@RequestParam("userType") String userType, @RequestParam("nombre") String nombre,
+			@RequestParam("email") String email, @RequestParam("telefono") String telefono,
+			@RequestParam("password") String password,
+			@RequestParam(value = "especialidad", required = false) String especialidad,
+			RedirectAttributes redirectAttributes) {
+
+		try {
+			// Verificar si el email ya existe
+			Optional<Usuario> usuarioExistente = usuarioRepository.findByEmail(email);
+			if (usuarioExistente.isPresent()) {
+				redirectAttributes.addFlashAttribute("error", "El email ya está registrado");
+				return "redirect:/registro";
+			}
+
+			// Crear usuario
+			Usuario usuario = new Usuario();
+			usuario.setNombre(nombre);
+			usuario.setEmail(email);
+			usuario.setTelefono(telefono);
+			usuario.setPassword(password);
+			usuario.setFechaRegistro(LocalDateTime.now());
+
+			Usuario usuarioGuardado = usuarioService.save(usuario);
+
+			// Si es profesional, crear registro en tabla profesional
+			if ("profesional".equals(userType)) {
+				Profesional profesional = new Profesional();
+				profesional.setEspecialidad(especialidad);
+				profesional.setUsuario(usuarioGuardado);
+				profesionalService.save(profesional);
+			}
+
+			redirectAttributes.addFlashAttribute("success", "Registro exitoso. Por favor inicia sesión");
+			return "redirect:/login";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			redirectAttributes.addFlashAttribute("error", "Error al registrar: " + e.getMessage());
+			return "redirect:/registro";
+		}
+	}
+
+	// Login (POST)
 	@PostMapping("/login")
-	public String login(@RequestParam("loginEmail") String email, @RequestParam("loginPassword") String password,
+	public String login(@RequestParam("username") String email, @RequestParam("password") String password,
 			HttpSession session, RedirectAttributes redirectAttributes) {
 
 		Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-
 		if (usuarioOpt.isEmpty()) {
 			redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");
-			return "redirect:/";
+			return "redirect:/login";
 		}
 
 		Usuario usuario = usuarioOpt.get();
-
 		if (!usuario.getPassword().equals(password)) {
 			redirectAttributes.addFlashAttribute("error", "Contraseña incorrecta");
-			return "redirect:/";
+			return "redirect:/login";
 		}
 
 		// Guardar datos en sesión
